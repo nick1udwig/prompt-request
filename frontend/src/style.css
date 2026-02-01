@@ -1,29 +1,91 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap");
 
+/* ========================================
+   Color System - Light Mode (Warm Parchment)
+   ======================================== */
 :root {
-  --bg: #f6f2ea;
-  --ink: #1f1c17;
-  --muted: #6f665b;
-  --accent: #b24a2f;
-  --panel: #fff9f2;
-  --code-bg: #1f1b17;
-  --code-ink: #f5efe6;
-  --stroke: #e6dccf;
+  --bg: #f2ede5;
+  --surface: #f7f1e8;
+  --ink: #3a3129;
+  --muted: #7a7066;
+  --accent: #a85a43;
+  --code-bg: #e8dfd2;
+  --code-ink: #3a3129;
+  --stroke: #d9cfbf;
+
+  /* Syntax highlighting - light mode */
+  --syn-key: #7e5842;
+  --syn-string: #5d775f;
+  --syn-number: #a1553f;
+  --syn-bool: #776783;
+  --syn-null: #7a7066;
+
+  /* Gradients */
+  --grad-spot1: #f8f1e6;
+  --grad-spot2: #e9dfd1;
+  --grad-base: #f2ede5;
+  --grad-end: #efe7dd;
+
+  /* Typography */
+  --font-body: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --font-size-body: clamp(15px, 0.875rem + 0.3vw, 16px);
+  --line-height-prose: 1.65;
+  --prose-max-width: 65ch;
 }
 
+/* ========================================
+   Dark Mode (Warm Charcoal)
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1f1c19;
+    --surface: #262320;
+    --ink: #d7cfc4;
+    --muted: #9a9287;
+    --accent: #c17a64;
+    --code-bg: #231f1b;
+    --code-ink: #d7cfc4;
+    --stroke: #3c3631;
+
+    /* Syntax highlighting - dark mode */
+    --syn-key: #c2a17c;
+    --syn-string: #8fb08e;
+    --syn-number: #c17a64;
+    --syn-bool: #b3a4c4;
+    --syn-null: #9a9287;
+
+    /* Gradients */
+    --grad-spot1: rgba(64, 54, 45, 0.45);
+    --grad-spot2: rgba(50, 42, 36, 0.35);
+    --grad-base: #1f1c19;
+    --grad-end: #1a1816;
+  }
+}
+
+/* ========================================
+   Base Reset & Box Sizing
+   ======================================== */
 * {
   box-sizing: border-box;
 }
 
+/* ========================================
+   Body & Page Layout
+   ======================================== */
 body {
   margin: 0;
   color: var(--ink);
-  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-prose);
   background:
-    radial-gradient(900px 600px at 20% 10%, #fff7ea, transparent),
-    radial-gradient(700px 500px at 80% 0%, #f0e3d1, transparent),
-    linear-gradient(180deg, #f6f2ea 0%, #f3ede2 100%);
+    radial-gradient(900px 600px at 20% 10%, var(--grad-spot1), transparent),
+    radial-gradient(700px 500px at 80% 0%, var(--grad-spot2), transparent),
+    linear-gradient(180deg, var(--grad-base) 0%, var(--grad-end) 100%);
+  background-attachment: fixed;
   min-height: 100vh;
+  min-height: 100dvh;
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 420ms ease, transform 420ms ease;
@@ -34,15 +96,45 @@ body.loaded {
   transform: translateY(0);
 }
 
-#page {
-  min-height: 100vh;
-  padding: 32px clamp(16px, 4vw, 40px) 48px;
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  #app {
+    animation: none;
+  }
+
+  .jsonl .line {
+    transition: none;
+  }
 }
 
+/* ========================================
+   Page Container
+   ======================================== */
+#page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px clamp(16px, 4vw, 40px) 48px;
+  padding-left: max(env(safe-area-inset-left), clamp(16px, 4vw, 40px));
+  padding-right: max(env(safe-area-inset-right), clamp(16px, 4vw, 40px));
+}
+
+/* ========================================
+   Header
+   ======================================== */
 #header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   border-bottom: 2px solid var(--stroke);
   padding-bottom: 12px;
   margin-bottom: 24px;
@@ -59,12 +151,30 @@ body.loaded {
   font-size: 14px;
 }
 
+/* Stack header on narrow screens */
+@media (max-width: 480px) {
+  #header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ========================================
+   Main App Container
+   ======================================== */
 #app {
-  background: var(--panel);
+  background: var(--surface);
   padding: clamp(18px, 3vw, 32px);
   border-radius: 16px;
   box-shadow: 0 12px 30px rgba(31, 28, 23, 0.08);
   animation: rise 520ms ease 80ms both;
+  overflow-x: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  #app {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  }
 }
 
 @keyframes rise {
@@ -78,6 +188,328 @@ body.loaded {
   }
 }
 
+/* ========================================
+   Prose Wrapper (Markdown Content)
+   ======================================== */
+.prose {
+  max-width: var(--prose-max-width);
+}
+
+/* Headings */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.prose h1 {
+  font-size: 1.75em;
+  color: var(--accent);
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 0.3em;
+  margin-top: 0;
+}
+
+.prose h2 {
+  font-size: 1.4em;
+  color: var(--accent);
+}
+
+.prose h3 {
+  font-size: 1.2em;
+  color: var(--ink);
+}
+
+.prose h4,
+.prose h5,
+.prose h6 {
+  font-size: 1em;
+  color: var(--ink);
+}
+
+/* Paragraphs */
+.prose p {
+  margin: 0 0 1em;
+}
+
+/* Links */
+.prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color 150ms ease;
+}
+
+.prose a:hover {
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prose a {
+    transition: none;
+  }
+}
+
+/* Blockquotes */
+.prose blockquote {
+  margin: 1em 0;
+  padding: 0.75em 1em;
+  border-left: 4px solid var(--accent);
+  background: var(--surface);
+  border-radius: 0 8px 8px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose blockquote {
+    background: var(--code-bg);
+  }
+}
+
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Inline code */
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--stroke);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose code {
+    background: var(--code-bg);
+  }
+}
+
+/* Code blocks */
+.prose pre {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: 1em 1.25em;
+  border-radius: 12px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  line-height: 1.5;
+  margin: 1em 0;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* Lists */
+.prose ul,
+.prose ol {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin: 0.4em 0;
+}
+
+.prose li > ul,
+.prose li > ol {
+  margin: 0.3em 0;
+}
+
+/* Tables */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.95em;
+}
+
+.prose th,
+.prose td {
+  padding: 0.6em 0.8em;
+  border: 1px solid var(--stroke);
+  text-align: left;
+}
+
+.prose th {
+  background: var(--stroke);
+  font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose th {
+    background: var(--code-bg);
+  }
+}
+
+.prose tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+/* Horizontal rule */
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--stroke);
+  margin: 2em 0;
+}
+
+/* Images */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* ========================================
+   JSONL Container & Styling
+   ======================================== */
+.jsonl {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: clamp(12px, 2vw, 20px);
+  border-radius: 12px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  line-height: 1.6;
+  margin: 0;
+  counter-reset: line;
+}
+
+/* Custom scrollbar for JSONL */
+.jsonl::-webkit-scrollbar {
+  height: 8px;
+}
+
+.jsonl::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.jsonl::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.jsonl::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* JSONL Lines */
+.jsonl .line {
+  display: block;
+  white-space: pre;
+  padding: 2px 0;
+  border-radius: 4px;
+  transition: background 150ms ease;
+}
+
+.jsonl .line:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jsonl .line {
+    transition: none;
+  }
+}
+
+/* Line numbers */
+.jsonl .ln {
+  display: inline-block;
+  min-width: 3ch;
+  margin-right: 1.5ch;
+  color: var(--muted);
+  text-align: right;
+  user-select: none;
+  opacity: 0.6;
+}
+
+/* JSON Syntax Highlighting */
+.jsonl .json-key {
+  color: var(--syn-key);
+}
+
+.jsonl .json-string {
+  color: var(--syn-string);
+}
+
+.jsonl .json-number {
+  color: var(--syn-number);
+}
+
+.jsonl .json-bool {
+  color: var(--syn-bool);
+}
+
+.jsonl .json-null {
+  color: var(--syn-null);
+  font-style: italic;
+}
+
+.jsonl .json-bracket {
+  color: var(--muted);
+}
+
+/* ========================================
+   Error State
+   ======================================== */
+.error {
+  padding: 16px;
+  background: #fce9e2;
+  border: 1px solid #f2b9a8;
+  border-radius: 12px;
+  color: var(--ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  .error {
+    background: rgba(180, 74, 47, 0.15);
+    border-color: rgba(212, 119, 92, 0.3);
+  }
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+#footer {
+  margin-top: 20px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  font-size: 13px;
+}
+
+/* ========================================
+   Touch Targets for Mobile
+   ======================================== */
+@media (max-width: 768px) {
+  .prose a {
+    padding: 4px 0;
+  }
+}
+
+/* ========================================
+   Legacy support for non-prose markdown
+   ======================================== */
 #app h1,
 #app h2,
 #app h3 {
@@ -91,39 +523,18 @@ body.loaded {
   padding: 16px;
   border-radius: 12px;
   overflow: auto;
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-mono);
 }
 
 #app code {
-  font-family: "IBM Plex Mono", monospace;
-  background: #f1e6d9;
+  font-family: var(--font-mono);
+  background: var(--stroke);
   padding: 2px 6px;
   border-radius: 6px;
 }
 
-.jsonl .line {
-  display: block;
-  white-space: pre-wrap;
-}
-
-.jsonl .ln {
-  display: inline-block;
-  width: 3ch;
-  margin-right: 12px;
-  color: #9f9587;
-}
-
-.error {
-  padding: 16px;
-  background: #fce9e2;
-  border: 1px solid #f2b9a8;
-  border-radius: 12px;
-}
-
-#footer {
-  margin-top: 20px;
-  color: var(--muted);
-  display: flex;
-  gap: 24px;
-  font-size: 13px;
+@media (prefers-color-scheme: dark) {
+  #app code {
+    background: var(--code-bg);
+  }
 }

@@ -118,9 +118,11 @@ fn frontend_router(dist: PathBuf) -> Router<AppState> {
     let index = dist.join("index.html");
     let dir = ServeDir::new(dist)
         .append_index_html_on_directories(true)
-        .not_found_service(ServeFile::new(index));
+        .not_found_service(ServeFile::new(index.clone()));
 
-    Router::new().nest_service("/h", dir)
+    Router::new()
+        .route_service("/h", ServeFile::new(index))
+        .nest_service("/h", dir)
 }
 
 fn init_tracing() {

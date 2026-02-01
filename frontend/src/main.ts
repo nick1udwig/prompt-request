@@ -26,18 +26,71 @@ function escapeHtml(input: string): string {
     .replace(/>/g, "&gt;");
 }
 
+/**
+ * Syntax highlight JSON content using regex-based tokenization.
+ * Returns HTML with span-wrapped tokens for CSS styling.
+ */
+function highlightJson(line: string): string {
+  // First escape HTML entities
+  const escaped = escapeHtml(line);
+
+  // Tokenize and wrap with spans
+  // Order matters: more specific patterns first
+
+  return escaped
+    // Keys (quoted strings followed by colon)
+    .replace(
+      /(&quot;[^&]*?&quot;)(\s*:)/g,
+      '<span class="json-key">$1</span>$2'
+    )
+    // String values (quoted strings not followed by colon)
+    .replace(
+      /(&quot;[^&]*?&quot;)(?!\s*:)/g,
+      '<span class="json-string">$1</span>'
+    )
+    // Numbers (integers and floats, including negative and exponential)
+    .replace(
+      /\b(-?\d+\.?\d*(?:[eE][+-]?\d+)?)\b/g,
+      '<span class="json-number">$1</span>'
+    )
+    // Booleans
+    .replace(
+      /\b(true|false)\b/g,
+      '<span class="json-bool">$1</span>'
+    )
+    // Null
+    .replace(
+      /\b(null)\b/g,
+      '<span class="json-null">$1</span>'
+    )
+    // Brackets and braces
+    .replace(
+      /([{}\[\]])/g,
+      '<span class="json-bracket">$1</span>'
+    );
+}
+
 function renderMarkdown(text: string) {
-  app.innerHTML = md.render(text);
+  const wrapper = document.createElement("div");
+  wrapper.className = "prose";
+  wrapper.innerHTML = md.render(text);
+  app.innerHTML = "";
+  app.appendChild(wrapper);
 }
 
 function renderJsonl(text: string) {
   const pre = document.createElement("pre");
   pre.className = "jsonl";
   const lines = text.split("\n");
+
+  // Calculate line number width based on total lines
+  const lineNumWidth = Math.max(3, String(lines.length).length);
+
   pre.innerHTML = lines
     .map((line, i) => {
-      const safe = escapeHtml(line);
-      return `<span class="line"><span class="ln">${i + 1}</span>${safe}</span>`;
+      const highlighted = highlightJson(line);
+      const lineNum = String(i + 1).padStart(lineNumWidth, " ");
+      return `<span class="line"><span class="ln">${lineNum}</span>${highlighted}</span>`;
     })
     .join("\n");
   app.innerHTML = "";
