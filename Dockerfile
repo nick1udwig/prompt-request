@@ -5,7 +5,7 @@ RUN npm install
 COPY frontend/ .
 RUN npm run build
 
-FROM rust:1.77-bookworm AS backend-builder
+FROM rust:1.90-bookworm AS backend-builder
 WORKDIR /app
 COPY Cargo.toml ./
 COPY src ./src
