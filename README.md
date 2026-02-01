@@ -183,3 +183,53 @@ sudo systemctl enable --now prompt-request
 ### Backups
 
 - Use `./scripts/backup_db.sh` with a separate S3 bucket (see `docs/ops.md`).
+
+## Migrating to a new VPS (Docker)
+
+Your data lives in Postgres and S3-compatible object storage. If you use an external S3
+provider (AWS/B2/etc.), you only need to move the Postgres database. If you use the
+local SeaweedFS container, move both Postgres and the Seaweed volume.
+
+### 1) On the old VPS (stop writes, back up)
+
+```bash
+docker compose stop app
+
+# Postgres backup
+docker compose exec -T db pg_dump -U prompt prompt_request | gzip > db.sql.gz
+
+# SeaweedFS backup (skip if using external S3)
+docker run --rm \
+  -v prompt-request_seaweed_data:/data \
+  -v "$PWD":/backup \
+  alpine sh -c "tar czf /backup/seaweed_data.tgz -C /data ."
+```
+
+### 2) Copy backups to the new VPS
+
+```bash
+scp db.sql.gz seaweed_data.tgz user@NEW_HOST:/path/to/backups/
+```
+
+### 3) On the new VPS (restore)
+
+```bash
+docker compose up -d db seaweed
+
+# Restore Postgres
+gunzip -c /path/to/backups/db.sql.gz | docker compose exec -T db psql -U prompt -d prompt_request
+
+# Restore SeaweedFS volume (skip if using external S3)
+docker compose stop seaweed
+docker run --rm \
+  -v prompt-request_seaweed_data:/data \
+  -v /path/to/backups:/backup \
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/seaweed_data.tgz -C /data"
+docker compose up -d seaweed
+```
+
+### 4) Start the app
+
+```bash
+docker compose up -d app
+```
