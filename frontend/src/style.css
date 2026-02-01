@@ -1,0 +1,129 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap");
+
+:root {
+  --bg: #f6f2ea;
+  --ink: #1f1c17;
+  --muted: #6f665b;
+  --accent: #b24a2f;
+  --panel: #fff9f2;
+  --code-bg: #1f1b17;
+  --code-ink: #f5efe6;
+  --stroke: #e6dccf;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  background:
+    radial-gradient(900px 600px at 20% 10%, #fff7ea, transparent),
+    radial-gradient(700px 500px at 80% 0%, #f0e3d1, transparent),
+    linear-gradient(180deg, #f6f2ea 0%, #f3ede2 100%);
+  min-height: 100vh;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 420ms ease, transform 420ms ease;
+}
+
+body.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#page {
+  min-height: 100vh;
+  padding: 32px clamp(16px, 4vw, 40px) 48px;
+}
+
+#header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+}
+
+.brand {
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+#meta {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+#app {
+  background: var(--panel);
+  padding: clamp(18px, 3vw, 32px);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(31, 28, 23, 0.08);
+  animation: rise 520ms ease 80ms both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#app h1,
+#app h2,
+#app h3 {
+  margin-top: 1.2em;
+  color: var(--accent);
+}
+
+#app pre {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: 16px;
+  border-radius: 12px;
+  overflow: auto;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+#app code {
+  font-family: "IBM Plex Mono", monospace;
+  background: #f1e6d9;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.jsonl .line {
+  display: block;
+  white-space: pre-wrap;
+}
+
+.jsonl .ln {
+  display: inline-block;
+  width: 3ch;
+  margin-right: 12px;
+  color: #9f9587;
+}
+
+.error {
+  padding: 16px;
+  background: #fce9e2;
+  border: 1px solid #f2b9a8;
+  border-radius: 12px;
+}
+
+#footer {
+  margin-top: 20px;
+  color: var(--muted);
+  display: flex;
+  gap: 24px;
+  font-size: 13px;
+}

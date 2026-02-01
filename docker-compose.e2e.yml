@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: prompt
+      POSTGRES_PASSWORD: prompt
+      POSTGRES_DB: prompt_request
+    ports:
+      - "5433:5432"
+
+  seaweed:
+    image: chrislusf/seaweedfs:latest
+    command: server -s3 -s3.port=8333 -ip=seaweed -dir=/data
+    environment:
+      AWS_ACCESS_KEY_ID: prompt
+      AWS_SECRET_ACCESS_KEY: prompt
+    ports:
+      - "8334:8333"
