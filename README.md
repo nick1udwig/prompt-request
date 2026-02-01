@@ -95,26 +95,91 @@ The script uses `docker-compose.e2e.yml` to avoid port collisions.
 
 See `docs/ops.md` for Cloudflare/Caddy notes and the hourly DB backup cron job.
 
-## Production setup (high level)
+## Production setup (commands)
 
-1) **Run the app**  
-   - Docker (recommended): build and run the image with environment variables set for Postgres + S3.
-   - Or run the binary directly and set env vars via systemd.
+Prereqs: a Postgres 16+ database and an S3-compatible bucket.
 
-2) **Configure required services**  
-   - Postgres 16+  
-   - S3-compatible storage (Backblaze B2, AWS S3, etc.)
+### Option A: Docker (single host)
 
-3) **Set required environment variables**  
-   - `DATABASE_URL`, `S3_BUCKET`  
-   - `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`  
-   - `API_KEY_PEPPER` (strongly recommended)  
-   - Optional: `FRONT_PAGE_PATH`, `FRONTEND_DIST`, `RUST_LOG`, `DB_MAX_CONNECTIONS`
+Build the image:
 
-4) **Reverse proxy + TLS**  
-   - Terminate TLS at Caddy/Nginx/Cloudflare.
-   - Pass `X-Forwarded-For` and lock down the origin to trusted proxies.
-   - Disable caching for `/` and `/api`.
+```bash
+docker build -t prompt-request .
+```
 
-5) **Backups**  
-   - Use `./scripts/backup_db.sh` with a separate S3 bucket (see `docs/ops.md`).
+Run it (replace the values):
+
+```bash
+docker run -d --name prompt-request \
+  -p 3000:3000 \
+  -e DATABASE_URL="postgres://USER:PASS@HOST:5432/DBNAME" \
+  -e S3_BUCKET="your-bucket" \
+  -e S3_ENDPOINT="https://s3.us-east-1.amazonaws.com" \
+  -e S3_REGION="us-east-1" \
+  -e S3_ACCESS_KEY_ID="AKIA..." \
+  -e S3_SECRET_ACCESS_KEY="SECRET..." \
+  -e API_KEY_PEPPER="$(openssl rand -hex 32)" \
+  -e RUST_LOG="info" \
+  prompt-request
+```
+
+### Option B: Systemd (binary on host)
+
+Build and install:
+
+```bash
+cargo build --release
+sudo install -m 0755 target/release/prompt-request /usr/local/bin/prompt-request
+```
+
+Create an env file:
+
+```bash
+sudo mkdir -p /etc/prompt-request
+sudo tee /etc/prompt-request/env >/dev/null <<'EOF'
+DATABASE_URL=postgres://USER:PASS@HOST:5432/DBNAME
+S3_BUCKET=your-bucket
+S3_ENDPOINT=https://s3.us-east-1.amazonaws.com
+S3_REGION=us-east-1
+S3_ACCESS_KEY_ID=AKIA...
+S3_SECRET_ACCESS_KEY=SECRET...
+API_KEY_PEPPER=$(openssl rand -hex 32)
+RUST_LOG=info
+EOF
+```
+
+Create a systemd unit:
+
+```bash
+sudo tee /etc/systemd/system/prompt-request.service >/dev/null <<'EOF'
+[Unit]
+Description=Prompt Request
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/prompt-request/env
+ExecStart=/usr/local/bin/prompt-request
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Enable and start:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now prompt-request
+```
+
+### Reverse proxy + TLS
+
+- Terminate TLS at Caddy/Nginx/Cloudflare.
+- Pass `X-Forwarded-For` and lock down the origin to trusted proxies.
+- Disable caching for `/` and `/api`.
+
+### Backups
+
+- Use `./scripts/backup_db.sh` with a separate S3 bucket (see `docs/ops.md`).
