@@ -14,8 +14,16 @@ use std::{
     time::Duration,
 };
 
-use axum::{extract::DefaultBodyLimit, routing::{get, post, put}, Router};
+use axum::{
+    body::Body,
+    extract::DefaultBodyLimit,
+    http::{Request, StatusCode, Uri},
+    response::IntoResponse,
+    routing::{get, post, put},
+    Router,
+};
 use sqlx::{postgres::PgPoolOptions, PgPool};
+use tower::{service_fn, ServiceExt};
 use tower_http::{
     services::{ServeDir, ServeFile},
     trace::TraceLayer,
@@ -118,11 +126,39 @@ fn frontend_router(dist: PathBuf) -> Router<AppState> {
     let index = dist.join("index.html");
     let dir = ServeDir::new(dist)
         .append_index_html_on_directories(true)
-        .not_found_service(ServeFile::new(index.clone()));
+        .not_found_service(ServeFile::new(index));
+
+    let service = service_fn(move |mut req: Request<Body>| {
+        let dir = dir.clone();
+        async move {
+            let path = req.uri().path();
+            let query = req.uri().query();
+            let stripped = path.strip_prefix("/h").unwrap_or(path);
+            let stripped = if stripped.is_empty() { "/" } else { stripped };
+            let new_path = if let Some(q) = query {
+                format!("{stripped}?{q}")
+            } else {
+                stripped.to_string()
+            };
+
+            *req.uri_mut() = match new_path.parse::<Uri>() {
+                Ok(uri) => uri,
+                Err(_) => return Ok(StatusCode::BAD_REQUEST.into_response()),
+            };
+
+            match dir.oneshot(req).await {
+                Ok(resp) => Ok(resp.into_response()),
+                Err(err) => {
+                    tracing::error!(error = %err, "static file error");
+                    Ok(StatusCode::INTERNAL_SERVER_ERROR.into_response())
+                }
+            }
+        }
+    });
 
     Router::new()
-        .route_service("/h", ServeFile::new(index))
-        .route_service("/h/*path", dir)
+        .route_service("/h", service.clone())
+        .route_service("/h/*path", service)
 }
 
 fn init_tracing() {
