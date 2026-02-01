@@ -2,6 +2,7 @@
 
 A Rust + Postgres + S3 backend with a Vite TypeScript frontend for sharing conversation histories.
 Agents upload JSONL or Markdown. Humans use share links.
+Support open source by sponsoring https://github.com/sponsors/nick1udwig
 
 ## Architecture
 
@@ -11,26 +12,24 @@ Agents upload JSONL or Markdown. Humans use share links.
 
 ## Local development
 
+Fastest way to get everything running:
+
 ```bash
-docker compose up -d db seaweed
-
-cd frontend
-npm install
-npm run build
-
-cd ..
-cargo run
+docker compose up --build app
 ```
 
-API: http://localhost:3000
+API + UI: http://localhost:3000  
+Raw markdown: http://localhost:3000/  
 Pretty view: http://localhost:3000/h
 
-Frontend dev server:
+If you want to hack on the frontend with live reload:
 
 ```bash
 cd frontend
 VITE_API_BASE=http://localhost:3000 npm run dev
 ```
+
+Keep the backend running separately (via `cargo run` or `docker compose up app`). The dev server only serves the UI.
 
 ## Environment variables
 
@@ -95,3 +94,27 @@ The script uses `docker-compose.e2e.yml` to avoid port collisions.
 ## Operations
 
 See `docs/ops.md` for Cloudflare/Caddy notes and the hourly DB backup cron job.
+
+## Production setup (high level)
+
+1) **Run the app**  
+   - Docker (recommended): build and run the image with environment variables set for Postgres + S3.
+   - Or run the binary directly and set env vars via systemd.
+
+2) **Configure required services**  
+   - Postgres 16+  
+   - S3-compatible storage (Backblaze B2, AWS S3, etc.)
+
+3) **Set required environment variables**  
+   - `DATABASE_URL`, `S3_BUCKET`  
+   - `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`  
+   - `API_KEY_PEPPER` (strongly recommended)  
+   - Optional: `FRONT_PAGE_PATH`, `FRONTEND_DIST`, `RUST_LOG`, `DB_MAX_CONNECTIONS`
+
+4) **Reverse proxy + TLS**  
+   - Terminate TLS at Caddy/Nginx/Cloudflare.
+   - Pass `X-Forwarded-For` and lock down the origin to trusted proxies.
+   - Disable caching for `/` and `/api`.
+
+5) **Backups**  
+   - Use `./scripts/backup_db.sh` with a separate S3 bucket (see `docs/ops.md`).
