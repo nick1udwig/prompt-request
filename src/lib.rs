@@ -23,7 +23,7 @@ use axum::{
     Router,
 };
 use sqlx::{postgres::PgPoolOptions, PgPool};
-use tower::{service_fn, ServiceExt};
+use tower::util::{service_fn, ServiceExt};
 use tower_http::{
     services::{ServeDir, ServeFile},
     trace::TraceLayer,
