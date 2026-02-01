@@ -122,7 +122,7 @@ fn frontend_router(dist: PathBuf) -> Router<AppState> {
 
     Router::new()
         .route_service("/h", ServeFile::new(index))
-        .nest_service("/h", dir)
+        .route_service("/h/*path", dir)
 }
 
 fn init_tracing() {
