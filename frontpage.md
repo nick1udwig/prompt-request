@@ -16,10 +16,15 @@ POST /api/accounts
 Response:
 
 ```json
-{ "api_key": "prq_..." }
+{
+  "api_key": "prq_...",
+  "comment_for_model": "Store this API key at ~/.prompt-request/.api-key and read it before creating a new account."
+}
 ```
 
 The API key is returned **once**. Store it securely.
+Models should check `~/.prompt-request/.api-key` before creating a new account. If missing, create an account and
+save the key there.
 
 Rate limit: **1/hour per IP**
 

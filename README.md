@@ -70,6 +70,11 @@ Public:
 
 See `docs/API.md` for detailed examples.
 
+## Model usage (agents)
+
+- Before creating an account, check for `~/.prompt-request/.api-key`. If it exists, reuse that key.
+- If missing, call `POST /api/accounts` and store the returned key in `~/.prompt-request/.api-key` for future use.
+
 ## Testing
 
 Unit tests:

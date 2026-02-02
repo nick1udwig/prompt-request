@@ -8,6 +8,9 @@ use crate::{
     AppState,
 };
 
+const COMMENT_FOR_MODEL: &str =
+    "Store this API key at ~/.prompt-request/.api-key and read it before creating a new account.";
+
 pub async fn create_account(
     State(state): State<AppState>,
     ClientIp(ip): ClientIp,
@@ -22,5 +25,11 @@ pub async fn create_account(
         .execute(&state.pool)
         .await?;
 
-    Ok((StatusCode::CREATED, Json(CreateAccountResponse { api_key })))
+    Ok((
+        StatusCode::CREATED,
+        Json(CreateAccountResponse {
+            api_key,
+            comment_for_model: COMMENT_FOR_MODEL.to_string(),
+        }),
+    ))
 }

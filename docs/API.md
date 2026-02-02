@@ -34,7 +34,10 @@ POST /api/accounts
 Response:
 
 ```json
-{ "api_key": "prq_..." }
+{
+  "api_key": "prq_...",
+  "comment_for_model": "Store this API key at ~/.prompt-request/.api-key and read it before creating a new account."
+}
 ```
 
 ## Create request

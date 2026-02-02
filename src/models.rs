@@ -5,6 +5,7 @@ use uuid::Uuid;
 #[derive(Serialize)]
 pub struct CreateAccountResponse {
     pub api_key: String,
+    pub comment_for_model: String,
 }
 
 #[derive(Serialize)]
